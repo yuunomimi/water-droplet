@@ -1,5 +1,6 @@
 import './style.css';
 import * as THREE from 'three';
+import * as CANNON from 'cannon-es';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 // Renderer
@@ -90,14 +91,50 @@ plane.rotation.x = Math.PI / 2;
 plane.position.y = -2;
 scene.add(plane);
 
+// Physics
+const world = new CANNON.World();
+world.gravity.set(0, -9.82, 0);
+
+const dropBody = new CANNON.Body({
+  mass: 1,
+  shape: new CANNON.Sphere(0.7),
+});
+dropBody.position.set(0, 3, 0);
+world.addBody(dropBody);
+
+const groundBody = new CANNON.Body({
+  mass: 0,
+  shape: new CANNON.Plane(),
+});
+groundBody.position.set(0, -2, 0);
+groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+world.addBody(groundBody);
+
+let isColliding = false;
+dropBody.addEventListener('collide', (event: any) => {
+  if(event.body === groundBody) {
+    // 衝突時に形状を変形させる
+    isColliding = true;
+  }
+});
+
 // Animation
 let time = 0;
 function animate() {
-  time += 0.01;
   requestAnimationFrame(animate);
   orbitControls.update();
 
-  deformDroplet(time%1);
+  world.step(1 / 60);
+  cube.position.copy(dropBody.position);
+
+  if (isColliding) {
+    // 衝突後の変形アニメーション
+    time += 0.3;
+    if(time > 1) {
+      time = 1; // Clamp to 1
+    }
+    deformDroplet(time);
+  }
 
   renderer.render(scene, camera);
 }
