@@ -23,7 +23,8 @@ const camera = new THREE.PerspectiveCamera(
   1000
 );
 
-camera.position.z = 5;
+camera.position.y = 5;
+camera.lookAt(0, 0, 0);
 
 const orbitControls = new OrbitControls(camera, renderer.domElement);
 
@@ -59,10 +60,18 @@ const deformDroplet = (t: number) => {
     const targetX = x * scale;
     const targetZ = z * scale;
 
-    // 元の球から目標形状へ徐々に変形
-    const currentX = x + (targetX - x) * t;
-    const currentY = y + (targetY - y) * t - t; // 下方向に少し押し下げる
-    const currentZ = z + (targetZ - z) * t;
+    // 元の球から目標形状へ変形
+    const shapeT = Math.min(t * 20, 1);
+
+    // プルプルする動き
+    const wobble = Math.sin(t * Math.PI * 6) * Math.exp(-t * 5);
+
+    // 球の下側ほど大きく揺らす
+    const influence = 1.0 - smooth;
+
+    const currentX = x + (targetX - x) * shapeT + wobble * influence * 0.15;
+    const currentY = y + (targetY - y) * shapeT - shapeT + wobble * influence * 0.15;
+    const currentZ = z + (targetZ - z) * shapeT + wobble * influence * 0.15;
 
     position.setXYZ(i, currentX, currentY, currentZ);
   }
@@ -99,7 +108,8 @@ const dropBody = new CANNON.Body({
   mass: 1,
   shape: new CANNON.Sphere(0.7),
 });
-dropBody.position.set(0, 3, 0);
+const dropletStartPosition = { x: 0, y: 3, z: 0 };
+dropBody.position.set(dropletStartPosition.x, dropletStartPosition.y, dropletStartPosition.z);
 world.addBody(dropBody);
 
 const groundBody = new CANNON.Body({
@@ -111,15 +121,30 @@ groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
 world.addBody(groundBody);
 
 let isColliding = false;
+let time = 0;
+
+const resetDroplet = () => {
+  isColliding = false;
+  time = 0;
+  dropBody.position.set(dropletStartPosition.x, dropletStartPosition.y, dropletStartPosition.z);
+  dropBody.velocity.set(0, 0, 0);
+  dropBody.angularVelocity.set(0, 0, 0);
+  cube.position.copy(dropBody.position);
+  deformDroplet(0);
+};
+
 dropBody.addEventListener('collide', (event: any) => {
-  if(event.body === groundBody) {
+  if (event.body === groundBody) {
     // 衝突時に形状を変形させる
     isColliding = true;
   }
 });
 
+document.getElementById('drop-button')?.addEventListener('click', () => {
+  resetDroplet();
+});
+
 // Animation
-let time = 0;
 function animate() {
   requestAnimationFrame(animate);
   orbitControls.update();
@@ -129,8 +154,8 @@ function animate() {
 
   if (isColliding) {
     // 衝突後の変形アニメーション
-    time += 0.3;
-    if(time > 1) {
+    time += 0.05;
+    if (time > 1) {
       time = 1; // Clamp to 1
     }
     deformDroplet(time);
