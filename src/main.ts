@@ -92,11 +92,11 @@ scene.add(cube);
 // Plane
 const planeGeometry = new THREE.PlaneGeometry(10, 10);
 const planeMaterial = new THREE.MeshLambertMaterial({
-  color: 0x00ff00,
+  map: new THREE.TextureLoader().load('src/floor.png'),
   side: THREE.DoubleSide,
 });
 const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-plane.rotation.x = Math.PI / 2;
+plane.rotation.x = -Math.PI / 2;
 plane.position.y = -2;
 scene.add(plane);
 
