@@ -81,12 +81,36 @@ const deformDroplet = (t: number) => {
 }
 deformDroplet(0); // 初期形状を設定
 
-const material = new THREE.MeshLambertMaterial({
-  color: 0x44aaff,
+// const material = new THREE.MeshPhysicalMaterial({
+//     color: 0xeefaff,
+//     roughness: 0,
+//     metalness: 0,
+//     transmission: 1,
+//     ior: 1.33,
+//     thickness: 1,
+//     iridescence: 1,
+//     sheen: 0.5,
+//     sheenColor: new THREE.Color(0xeefaff),
+//     sheenRoughness: 0.4,
+//     side: THREE.DoubleSide,
+// });
+
+const material = new THREE.MeshPhysicalMaterial({
+    color: 0xfafeff,
+    transparent: true,
+    opacity: 1,
+    roughness: 0,
+    metalness: 0,
+    transmission: 1,
+    thickness: 0.8,
+    ior: 1.33,
+    sheen: 0.2,
+    sheenColor: new THREE.Color(0xeefaff),
+    sheenRoughness: 0.8,
 });
 
-const cube = new THREE.Mesh(geometry, material);
-scene.add(cube);
+const droplet = new THREE.Mesh(geometry, material);
+scene.add(droplet);
 
 
 // Plane
@@ -106,7 +130,7 @@ world.gravity.set(0, -9.82, 0);
 
 const dropBody = new CANNON.Body({
   mass: 1,
-  shape: new CANNON.Sphere(0.7),
+  shape: new CANNON.Sphere(0.80),
 });
 const dropletStartPosition = { x: 0, y: 3, z: 0 };
 dropBody.position.set(dropletStartPosition.x, dropletStartPosition.y, dropletStartPosition.z);
@@ -129,7 +153,7 @@ const resetDroplet = () => {
   dropBody.position.set(dropletStartPosition.x, dropletStartPosition.y, dropletStartPosition.z);
   dropBody.velocity.set(0, 0, 0);
   dropBody.angularVelocity.set(0, 0, 0);
-  cube.position.copy(dropBody.position);
+  droplet.position.copy(dropBody.position);
   deformDroplet(0);
 };
 
@@ -150,7 +174,7 @@ function animate() {
   orbitControls.update();
 
   world.step(1 / 60);
-  cube.position.copy(dropBody.position);
+  droplet.position.copy(dropBody.position);
 
   if (isColliding) {
     // 衝突後の変形アニメーション
