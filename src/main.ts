@@ -52,7 +52,7 @@ const deformDroplet = (t: number) => {
     const smooth = normalizedY * normalizedY * (3 - 2 * normalizedY);
 
     // 潰した後の高さ
-    const targetY = 0.2 + smooth * 1.2;
+    const targetY = smooth * 1.2;
 
     // 横方向にも少し広げる
     const scale = 1.0 + (1.0 - smooth) * 0.3;
@@ -61,7 +61,7 @@ const deformDroplet = (t: number) => {
     const targetZ = z * scale;
 
     // 元の球から目標形状へ変形
-    const shapeT = Math.min(t * 20, 1);
+    const shapeT = Math.min(t * 10, 1);
 
     // プルプルする動き
     const wobble = Math.sin(t * Math.PI * 6) * Math.exp(-t * 5);
@@ -96,17 +96,17 @@ deformDroplet(0); // 初期形状を設定
 // });
 
 const material = new THREE.MeshPhysicalMaterial({
-    color: 0xfafeff,
-    transparent: true,
-    opacity: 1,
-    roughness: 0,
-    metalness: 0,
-    transmission: 1,
-    thickness: 0.8,
-    ior: 1.33,
-    sheen: 0.2,
-    sheenColor: new THREE.Color(0xeefaff),
-    sheenRoughness: 0.8,
+  color: 0xfafeff,
+  transparent: true,
+  opacity: 1,
+  roughness: 0,
+  metalness: 0,
+  transmission: 1,
+  thickness: 0.8,
+  ior: 1.33,
+  sheen: 0.2,
+  sheenColor: new THREE.Color(0xeefaff),
+  sheenRoughness: 0.8,
 });
 
 const droplet = new THREE.Mesh(geometry, material);
@@ -130,7 +130,7 @@ world.gravity.set(0, -9.82, 0);
 
 const dropBody = new CANNON.Body({
   mass: 1,
-  shape: new CANNON.Sphere(0.80),
+  shape: new CANNON.Sphere(1),
 });
 const dropletStartPosition = { x: 0, y: 3, z: 0 };
 dropBody.position.set(dropletStartPosition.x, dropletStartPosition.y, dropletStartPosition.z);
@@ -161,6 +161,8 @@ dropBody.addEventListener('collide', (event: any) => {
   if (event.body === groundBody) {
     // 衝突時に形状を変形させる
     isColliding = true;
+    dropBody.velocity.set(0, 0, 0);
+    dropBody.angularVelocity.set(0, 0, 0);
   }
 });
 
