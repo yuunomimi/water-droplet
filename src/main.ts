@@ -8,7 +8,7 @@ const renderer = new THREE.WebGLRenderer({
   antialias: true,
 });
 
-renderer.setClearColor(0x000000, 1); // Set background color to white
+renderer.setClearColor(0x0000ff, 1); // Set background color to white
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
